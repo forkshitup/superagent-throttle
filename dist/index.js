@@ -228,7 +228,9 @@ let defaults = {
 
     // original `request.end` was stored at `request._maskedEnd`
     request._maskedEnd(cleanup);
-    throttle._requestTimes.push(Date.now());
+    for (let i = 0; i < request.weight; i++) {
+      throttle._requestTimes.push(Date.now());
+    }
     throttle._current += 1;
     this.emit('sent', request);
   }
@@ -245,12 +247,13 @@ let defaults = {
    * @param {string} serial any string is ok, it's just a namespace
    * @returns null
    */
-  plugin(serial) {
+  plugin(serial, weight = 1) {
     let throttle = this;
     // let patch = function(request) {
     return request => {
       request.throttle = throttle;
       request.serial = serial || false;
+      request.weight = weight;
       // replace request.end
       request._maskedEnd = request.end;
       request.end = function (callback) {
